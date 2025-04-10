@@ -7,7 +7,7 @@ import pickle
 from tqdm import tqdm 
 from itertools import compress
 from deel.puncc.api.utils import hungarian_assignment
-from utils import nms, xywh2xyxy, draw_detections
+from utils.helpers import nms, xywh2xyxy, draw_detections
 
 class YOLOAPIWrappper:
     def __init__(self, path,file_path="calibration_results.pickle", conf_thres=0.7, iou_thres=0.5):

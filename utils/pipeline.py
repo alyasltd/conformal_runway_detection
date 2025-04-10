@@ -1,6 +1,6 @@
 import os
 import numpy as np
-from wrapper import YOLOAPIWrappper
+from utils.wrapper import YOLOAPIWrappper
 import glob
 import pandas as pd 
 from PIL import Image
@@ -223,12 +223,7 @@ class CPPipeline:
             alpha = 0.3
             y_pred_new, box_inner, box_outer = conformal_predictor.predict(y_new_api, alpha=alpha)
 
-            # Sorting for consistency
-            sort_indices_outer = np.lexsort(box_outer.T[::-1])
-            box_outer = box_outer[sort_indices_outer]
-            sort_indices_true = np.lexsort(y_true.T[::-1])
-            y_true = y_true[sort_indices_true]
-
+            
             # Append results
             y_pred_val.append(y_pred_new)
             y_true_val.append(y_true)
@@ -251,13 +246,31 @@ class CPPipeline:
 
         cover = [object_detection_mean_coverage(box_outer_val[i], y_true_val[i]) 
                 for i in range(len(y_pred_val)) if box_outer_val[i].shape == y_true_val[i].shape]
-        print(f"Marginal coverage: {np.mean(cover)}")
+        print(f"Average Marginal coverage: {np.mean(cover)}")
 
         return y_pred_val, y_true_val, box_outer_val, images_val # pred_yolo, gt, pred_cp
     
 
     #TODO 
     #function average map50 map5095 over all images
+    def average_map(self, y_pred_val, y_true_val, box_outer_val, images_val):
+        """
+        Compute the average mAP over all images.
+        """
+        #TODO
+        # Compute mAP for each image
+        # Compute average mAP over all images
+        pass
+
+    def iou(self, pred_c, gt):
+        """
+        Compute the Intersection over Union (IoU) and Intersection over Area (IoA) between predicted and ground truth boxes.
+        """
+        #TODO
+        # Compute IoU and IoA
+        # Return IoU and IoA
+        pass
+
     #function - Iou(pred_c, gt) given IoU(pred, gt) - IoA(pred_c, gt) given IoA(pred, gt)
-    #-  IoA(pred_c, gt),  IoU(pred_c, gt) - IoU(pred_c, gt), slant distance
+    #-  IoA(pred_c, gt) given IoU(pred_c, gt) - IoU(pred_c, gt) given slant distance
 
