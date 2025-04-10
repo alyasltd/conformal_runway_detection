@@ -7,68 +7,104 @@ import pickle
 from tqdm import tqdm 
 from itertools import compress
 from deel.puncc.api.utils import hungarian_assignment
-import matplotlib.pyplot as plt
-import matplotlib.patches as patches
+from utils import nms, xywh2xyxy, draw_detections
 
 class YOLOAPIWrappper:
     def __init__(self, path,file_path="calibration_results.pickle", conf_thres=0.7, iou_thres=0.5):
         self.conf_threshold = conf_thres
         self.iou_threshold = iou_thres
         self.file_path = file_path
-        # Initialize model
+        # Initialize onnx model for inference
         self.initialize_model(path)
 
     def __call__(self, image):
+        """
+        Perform object detection on the input image.
+        Args:
+            image (np.ndarray): Input image in BGR format.
+        Returns:
+            Tuple[np.ndarray, np.ndarray, np.ndarray]: Detected bounding boxes, scores, and class IDs.
+        """
         return self.detect_objects(image)
 
     def initialize_model(self, path):
+        """
+        Initialize the ONNX model for inference.
+        Args:
+            path (str): Path to the ONNX model file.
+        """
         self.session = onnxruntime.InferenceSession(path, providers=['CPUExecutionProvider'])
         self.get_input_details()
         self.get_output_details()
 
     def detect_objects(self, image):
+        """
+        Perform object detection on the input image.
+        Args:
+            image (np.ndarray): Input image in BGR format.
+        Returns:
+            Tuple[np.ndarray, np.ndarray, np.ndarray]: Detected bounding boxes, scores, and class IDs.
+        """
         input_tensor = self.prepare_input(image)
         output = self.inference(input_tensor)
         self.boxes, self.scores, self.class_ids = self.process_output(output)
         return self.boxes, self.scores, self.class_ids
 
     def prepare_input(self, image):
-        self.img_height, self.img_width = image.shape[:2]
-        input_img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        """
+        Prepare the input image for the model. 
+        Args:
+            image (np.ndarray): Input image in BGR format.
+        Returns:
+            np.ndarray: Preprocessed input tensor.
+        """
+        self.img_height, self.img_width = image.shape[:2] # Get original image dimensions
+        input_img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB) # Convert BGR to RGB
 
-        # Resize input image
-        input_img = cv2.resize(input_img, (self.input_width, self.input_height))
+        input_img = cv2.resize(input_img, (self.input_width, self.input_height)) # Resize input image
 
-        # Normalize pixel values
-        input_img = input_img / 255.0
-        input_img = input_img.transpose(2, 0, 1)
-        input_tensor = input_img[np.newaxis, :, :, :].astype(np.float32)
+        input_img = input_img / 255.0 # Normalize pixel values
+        input_img = input_img.transpose(2, 0, 1) # Change to (C, H, W) cause torch default to channel last
+        input_tensor = input_img[np.newaxis, :, :, :].astype(np.float32) # Add batch dimension & convert to float32 as opencv default's different
 
-        return input_tensor
+        return input_tensor 
 
     def inference(self, input_tensor):
+        """
+        Perform inference on the input tensor using the ONNX model.
+        Args:
+            input_tensor (np.ndarray): Preprocessed input tensor.
+        Returns:
+            np.ndarray: Model output.
+        """
         start = time.perf_counter()
         outputs = self.session.run(self.output_names, {self.input_names[0]: input_tensor})[0]
         return outputs
 
     def process_output(self, output):
-        predictions = np.squeeze(output)
+        """
+        Process the model output to extract bounding boxes, scores, and class IDs.
+        Args:
+            output (np.ndarray): Model output.
+        Returns:
+            Tuple[np.ndarray, np.ndarray, np.ndarray]: Detected bounding boxes, scores, and class IDs.
+        """
+        predictions = np.squeeze(output) # Get the output predictions without batch dimension
 
         # Filter out object confidence scores below threshold
-        obj_conf = predictions[:, 4]
-        predictions = predictions[obj_conf > self.conf_threshold]
-        obj_conf = obj_conf[obj_conf > self.conf_threshold]
+        obj_conf = predictions[:, 4] # Get object confidence scores
+        predictions = predictions[obj_conf > self.conf_threshold] # Filter predictions based on confidence threshold
+        obj_conf = obj_conf[obj_conf > self.conf_threshold] # Get the filtered object confidence scores
 
-        # Multiply class confidence with bounding box confidence
-        predictions[:, 5:] *= obj_conf[:, np.newaxis]
+        predictions[:, 5:] *= obj_conf[:, np.newaxis] # Multiply class confidence with object confidence to get final confidence scores
 
         # Get the scores and filter predictions
-        scores = np.max(predictions[:, 5:], axis=1)
-        predictions = predictions[scores > self.conf_threshold]
-        scores = scores[scores > self.conf_threshold]
+        scores = np.max(predictions[:, 5:], axis=1) # Get the maximum class confidence scores
+        predictions = predictions[scores > self.conf_threshold] # Filter predictions based on final confidence scores
+        scores = scores[scores > self.conf_threshold] # Get the filtered scores
 
         # Get the class with the highest confidence
-        class_ids = np.argmax(predictions[:, 5:], axis=1)
+        class_ids = np.argmax(predictions[:, 5:], axis=1) # Get the class IDs
 
         # Get bounding boxes for each object
         boxes = self.extract_boxes(predictions)
@@ -79,6 +115,13 @@ class YOLOAPIWrappper:
         return boxes[indices], scores[indices], class_ids[indices]
 
     def extract_boxes(self, predictions):
+        """
+        Extract and scale bounding boxes from the model predictions.
+        Args:
+            predictions (np.ndarray): Model predictions.
+        Returns:
+            np.ndarray: Scaled bounding boxes in (x1, y1, x2, y2) format.
+        """
         # Extract and scale boxes
         boxes = predictions[:, :4]
         boxes /= np.array([self.input_width, self.input_height, self.input_width, self.input_height])
@@ -90,6 +133,9 @@ class YOLOAPIWrappper:
         return draw_detections(image, self.boxes, self.scores, self.class_ids, mask_alpha, save_path)
 
     def get_input_details(self):
+        """
+        Get input details of the ONNX model.
+        """
         model_inputs = self.session.get_inputs()
         self.input_names = [model_inputs[i].name for i in range(len(model_inputs))]
         self.input_shape = model_inputs[0].shape
@@ -97,6 +143,9 @@ class YOLOAPIWrappper:
         self.input_width = self.input_shape[3]
 
     def get_output_details(self):
+        """
+        Get output details of the ONNX model.
+        """
         model_outputs = self.session.get_outputs()
         self.output_names = [model_outputs[i].name for i in range(len(model_outputs))]
     
@@ -217,70 +266,6 @@ class YOLOAPIWrappper:
         self.save_results(y_preds, matched_trues, images, classes)
 
         return y_preds, matched_trues, images, classes
-
-
-
-# UTILS FUNCTIONS
-# NMS Helper Function
-def nms(boxes, scores, iou_threshold):
-    sorted_indices = np.argsort(scores)[::-1]
-    keep_boxes = []
-    while sorted_indices.size > 0:
-        box_id = sorted_indices[0]
-        keep_boxes.append(box_id)
-        ious = compute_iou(boxes[box_id, :], boxes[sorted_indices[1:], :])
-        keep_indices = np.where(ious < iou_threshold)[0]
-        sorted_indices = sorted_indices[keep_indices + 1]
-    return keep_boxes
-
-#Helper Function
-def compute_iou(box, boxes):
-    xmin = np.maximum(box[0], boxes[:, 0])
-    ymin = np.maximum(box[1], boxes[:, 1])
-    xmax = np.minimum(box[2], boxes[:, 2])
-    ymax = np.minimum(box[3], boxes[:, 3])
-    intersection_area = np.maximum(0, xmax - xmin) * np.maximum(0, ymax - ymin)
-    box_area = (box[2] - box[0]) * (box[3] - box[1])
-    boxes_area = (boxes[:, 2] - boxes[:, 0]) * (boxes[:, 3] - boxes[:, 1])
-    union_area = box_area + boxes_area - intersection_area
-    iou = intersection_area / union_area
-    return iou
-
-#TODO compute ioa
-  
-# Bounding box conversion helper function
-def xywh2xyxy(x):
-    y = np.copy(x)
-    y[..., 0] = x[..., 0] - x[..., 2] / 2
-    y[..., 1] = x[..., 1] - x[..., 3] / 2
-    y[..., 2] = x[..., 0] + x[..., 2] / 2
-    y[..., 3] = x[..., 1] + x[..., 3] / 2
-    return y
-
-# Draw detections using matplotlib
-def draw_detections(image, boxes, scores, class_ids, mask_alpha=0.3, save_path=None):
-    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-    fig, ax = plt.subplots(1, figsize=(12, 8))
-    ax.imshow(image)
-    class_names = ["runway"]
-    colors = ["red"]
-
-    for box, score, class_id in zip(boxes, scores, class_ids):
-        color = colors[class_id]
-        x1, y1, x2, y2 = box.astype(int)
-        rect = patches.Rectangle((x1, y1), x2 - x1, y2 - y1, linewidth=2, edgecolor=color, facecolor='none')
-        ax.add_patch(rect)
-
-        label = class_names[class_id]
-        caption = f'{label} {int(score * 100)}%'
-        ax.text(x1, y1, caption, fontsize=12, bbox=dict(facecolor='yellow', alpha=0.5))
-
-    plt.axis('off')
-
-    if save_path:
-        plt.savefig(save_path, bbox_inches='tight', pad_inches=0, transparent=True)
-
-    plt.show()
 
 # TESTING
 #if __name__ == '__main__':
