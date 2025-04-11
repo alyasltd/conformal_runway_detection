@@ -9,7 +9,7 @@ from deel.puncc.object_detection import SplitBoxWise
 from sklearn.model_selection import train_test_split
 from deel.puncc.plotting import draw_bounding_box
 from deel.puncc.metrics import object_detection_mean_coverage, object_detection_mean_area
-
+from utils.helpers import iou, ioa
  
 class CPPipeline:
     def __init__(self, yolo_wrapper, test_set='test', method="multiplicative"):
@@ -205,7 +205,17 @@ class CPPipeline:
         print(f"Average area: {np.round(average_area, 2)}")
 
 
-    def infer_eval_all(self, X_val, y_val, labels_val, conformal_predictor, visualize=False):
+    def infer_all_images(self, conformal_predictor, X_val, y_val, labels_val, visualize=False):
+        """
+        Run inference on all images in the validation set.
+        Args:
+            conformal_predictor (IdPredictor): Conformal predictor instance.
+            X_val (List[str]): List of image file paths.
+            y_val (List[np.ndarray]): List of ground truth bounding boxes.
+            labels_val (List[List[int]]): List of class labels for each bounding box.
+        Returns:
+            Tuple[List[np.ndarray], List[np.ndarray], List[np.ndarray], List[np.ndarray]]: Predicted bounding boxes, ground truth boxes, images, and classes.
+        """
         no_predictions = 0
         y_pred_val, y_true_val, images_val, classes_val, box_inner_val, box_outer_val = [], [], [], [], [], []
 
@@ -216,7 +226,7 @@ class CPPipeline:
             image = Image.open(image_path)
 
             if y_new_api.shape[0] == 0:  
-                print(f"No detections in image {image_path}")
+                #print(f"No detections in image {image_path}")
                 no_predictions += 1
                 continue  
 
@@ -225,51 +235,101 @@ class CPPipeline:
 
             
             # Append results
-            y_pred_val.append(y_pred_new)
-            y_true_val.append(y_true)
-            images_val.append(image)
-            classes_val.append(classes)
-            box_inner_val.append(box_inner)
-            box_outer_val.append(box_outer)
-
+            y_pred_val.append(y_pred_new) # yolo prediction
+            y_true_val.append(y_true) # ground truth
+            images_val.append(image) # image validation paths
+            classes_val.append(classes) #  list classes
+            box_inner_val.append(box_inner) # conformalized inner box
+            box_outer_val.append(box_outer) # conformalized outer box
             # Visualize the first 5 images for debugging
             if visualize and i < 5:
-                self.infer_eval_single_image(conformal_predictor, image_path, y_true, classes, y_new_api)
+                self.infer_eval_single_image(conformal_predictor, image_path[i], y_true, classes, y_new_api)
+                
+        print(f"Number of images: {len(X_val)}")
+        print(f"Number of images without predictions: {no_predictions}")
+        print(f"Number of images with predictions: {len(X_val) - no_predictions}")
 
-        # Compute global metrics
+        return y_pred_val, y_true_val, images_val, classes_val, box_inner_val, box_outer_val # pred_yolo, gt, image, classes, box_inner, box_outer
+
+
+    def average_cover_and_area(self, y_pred_val, y_true_val, box_outer_val):
+        """
+        Compute average coverage and area of prediction intervals.
+        Args:
+            y_pred_val (List[np.ndarray]): List of predicted bounding boxes.
+            y_true_val (List[np.ndarray]): List of ground truth bounding boxes.
+            box_outer_val (List[np.ndarray]): List of outer bounding boxes.
+            
+        Returns:
+            Tuple[List[np.ndarray], List[np.ndarray], List[np.ndarray], List[np.ndarray]]: Predicted bounding boxes, ground truth boxes, images, and classes.
+        """
+
+        # AVERAGE COVERAGE AND AREA
         average_glo_area = [object_detection_mean_area(box_outer_val[i]) for i in range(len(box_outer_val)) if len(box_outer_val[i]) > 0]
         print(f"Average area of prediction intervals: {np.mean(average_glo_area)}")
         print(f"Average length of prediction intervals: {np.sqrt(np.mean(average_glo_area))}")
-        print(f"Number of images without predictions: {no_predictions}")
-        print(f"Number of images with predictions: {len(X_val) - no_predictions}")
-        print(f"Number of images: {len(X_val)}")
+        
 
-        cover = [object_detection_mean_coverage(box_outer_val[i], y_true_val[i]) 
-                for i in range(len(y_pred_val)) if box_outer_val[i].shape == y_true_val[i].shape]
+        cover = [object_detection_mean_coverage(box_outer_val[i], y_true_val[i]) for i in range(len(y_pred_val)) if box_outer_val[i].shape == y_true_val[i].shape]
         print(f"Average Marginal coverage: {np.mean(cover)}")
 
-        return y_pred_val, y_true_val, box_outer_val, images_val # pred_yolo, gt, pred_cp
+        return average_glo_area, cover
     
 
-    #TODO 
-    #function average map50 map5095 over all images
-    def average_map(self, y_pred_val, y_true_val, box_outer_val, images_val):
+    def map50(self, y_true_val, y_pred_val, iou_threshold=0.5):
         """
-        Compute the average mAP over all images.
+        Compute Mean Average Precision (mAP) at IoU threshold of 0.5.
+        Args:
+            y_true_val (List[np.ndarray]): List of ground truth bounding boxes.
+            y_pred_val (List[np.ndarray]): List of predicted bounding boxes.
+            iou_threshold (float): IoU threshold for matching.
+        Returns:
+            map_50 (float): Mean Average Precision at IoU 0.5.
         """
-        #TODO
-        # Compute mAP for each image
-        # Compute average mAP over all images
+        average_precisions = []
+
+        for y_true, y_pred in zip(y_true_val, y_pred_val):
+            matched = 0
+            used_pred = set()
+
+            for gt_box in y_true:
+                for i, pred_box in enumerate(y_pred):
+                    if i in used_pred:
+                        continue
+                    iou_score = iou(gt_box, pred_box)
+                    if iou_score >= iou_threshold:
+                        matched += 1
+                        used_pred.add(i)
+                        break
+
+            precision = matched / (len(y_pred) + 1e-6)
+            recall = matched / (len(y_true) + 1e-6)
+            ap = (precision * recall) / (precision + recall + 1e-6)
+            average_precisions.append(ap)
+
+        map_50 = np.mean(average_precisions)
+        print(f"Mean AP @ IoU 0.5: {map_50}")
+        return map_50
+    
+
+    #TODO
+    def map5095():
         pass
 
-    def iou(self, pred_c, gt):
-        """
-        Compute the Intersection over Union (IoU) and Intersection over Area (IoA) between predicted and ground truth boxes.
-        """
-        #TODO
-        # Compute IoU and IoA
-        # Return IoU and IoA
+    def plot_iou_iou():
         pass
+
+    def plot_iou_ioa():
+        pass
+
+    def plot_ioa_ioa():
+        pass
+
+    def plot_iou_slant():
+        pass
+
+
+
 
     #function - Iou(pred_c, gt) given IoU(pred, gt) - IoA(pred_c, gt) given IoA(pred, gt)
     #-  IoA(pred_c, gt) given IoU(pred_c, gt) - IoU(pred_c, gt) given slant distance

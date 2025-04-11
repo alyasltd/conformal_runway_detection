@@ -53,7 +53,18 @@ def iou(box_a, box_b):
     Returns:
         iou (float): IoU value.
     """
-    pass #TODO compute iou
+    xA = max(box_a[0], box_b[0])
+    yA = max(box_a[1], box_b[1])
+    xB = min(box_a[2], box_b[2])
+    yB = min(box_a[3], box_b[3])
+
+    interArea = max(0, xB - xA) * max(0, yB - yA)
+
+    boxAArea = (box_a[2] - box_a[0]) * (box_a[3] - box_a[1])
+    boxBArea = (box_b[2] - box_b[0]) * (box_b[3] - box_b[1])
+
+    iou = interArea / float(boxAArea + boxBArea - interArea + 1e-6)
+    return iou
 
 def ioa(box_a, box_b): 
     """
@@ -64,7 +75,16 @@ def ioa(box_a, box_b):
     Returns:
         ioa (float): IoA value.
     """
-    pass #TODO compute ioa
+    xA = max(box_a[0], box_b[0])
+    yA = max(box_a[1], box_b[1])
+    xB = min(box_a[2], box_b[2])
+    yB = min(box_a[3], box_b[3])
+
+    interArea = max(0, xB - xA) * max(0, yB - yA)
+    boxBArea = (box_b[2] - box_b[0]) * (box_b[3] - box_b[1])
+
+    ioa = interArea / float(boxBArea + 1e-6)
+    return ioa
   
 
 def xywh2xyxy(x):
