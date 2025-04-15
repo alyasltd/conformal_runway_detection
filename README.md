@@ -19,7 +19,6 @@ We leverage pretrained YOLOv5 and YOLOv6 object detection models to provide stat
 
 > ⚠️ `base/` directory must be downloaded separately (containing Test, Test Synth & Test Real directories).
 
----
 
 ## 🔍 Models Used
 
@@ -28,7 +27,6 @@ We leverage pretrained YOLOv5 and YOLOv6 object detection models to provide stat
 | YOLOv5s  | Yes        | 100    | 16    | 640      | 15.8 GFLOPs    |
 | YOLOv6s  | Yes        | 97     | 32    | 640      | 45.3 GFLOPs    |
 
----
 
 ## Data Augmentation & Performance Summary
 
@@ -54,7 +52,6 @@ copy_paste: 0.0
 | **mAP@0.5**       | 0.995            | 0.990            |
 | **mAP@0.5:0.95**  | 0.971            | 0.941            |
 
----
 
 ## Experiments Overview
 
@@ -72,11 +69,9 @@ copy_paste: 0.0
 
 📌 *Full table in `exp/` directory.*
 
----
 
 ##  Future Work & Open Questions
 XXXXX
----
 
 ## 📂 Project Structure
 ```
