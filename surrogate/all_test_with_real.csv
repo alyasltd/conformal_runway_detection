@@ -1,4 +1,4 @@
-image,slant_distance,slant_distance_zscore,time_to_landing,bbox_area,x_A,y_A,x_B,y_B,x_C,y_C,x_D,y_D,x_A_norm,y_A_norm,x_B_norm,y_B_norm,x_C_norm,y_C_norm,x_D_norm,y_D_norm,file
+filename,slant_distance,slant_distance_zscore,time_to_landing,bbox_area,x_A,y_A,x_B,y_B,x_C,y_C,x_D,y_D,x_A_norm,y_A_norm,x_B_norm,y_B_norm,x_C_norm,y_C_norm,x_D_norm,y_D_norm,file
 0fiHJrxfJPE_KSFO35.png,,,40.0,1080.0,1759,958,1775,958,1745,1030,1791,1030,0.45807291666666666,0.44351851851851853,0.4622395833333333,0.44351851851851853,0.4544270833333333,0.47685185185185186,0.46640625,0.47685185185185186,LARD_test_real_domain_adaptation.csv
 0fiHJrxfJPE_KSFO37.png,,,25.0,1967.0,1782,945,1759,946,1806,1030,1737,1032,0.4640625,0.4375,0.45807291666666666,0.43796296296296294,0.4703125,0.47685185185185186,0.45234375,0.4777777777777778,LARD_test_real_domain_adaptation.csv
 0fiHJrxfJPE_KSFO39.png,,,15.0,6280.0,1792,919,1820,919,1740,1037,1874,1038,0.4666666666666667,0.425462962962963,0.4739583333333333,0.425462962962963,0.453125,0.48009259259259257,0.48802083333333335,0.48055555555555557,LARD_test_real_domain_adaptation.csv
