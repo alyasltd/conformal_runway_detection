@@ -156,6 +156,7 @@ class YOLOAPIWrappper:
             image_path (str): Path to the input image.
         Returns:
             np.ndarray: Predicted bounding boxes in (x1, y1, x2, y2) format.
+            np.ndarray: Scores for each bounding box.
         """
         image = cv2.imread(image_path)
         self.detect_objects(image)
@@ -171,27 +172,28 @@ class YOLOAPIWrappper:
             Returns:
                 Tuple[np.ndarray, np.ndarray]: Matched predicted and true bounding boxes.
             """
-            y_preds_per_image, score_per_image = self.predict_from_image(image_path)
+            y_preds_per_image, scores_per_image = self.predict_from_image(image_path)
             
             #y_preds_per_image = np.array(y_preds_per_image)
             #y_trues_per_image = np.array(y_trues_per_image)
             if y_preds_per_image is None or y_preds_per_image.shape[0] == 0:
-                return np.zeros((0, 4)), np.zeros((0, 4)), np.array([], dtype=bool)
+                return np.zeros((0, 4)), np.zeros((0, 4)), np.array([], dtype=bool), np.array([], dtype=float) 
+            
             y_preds_per_image = np.array(y_preds_per_image, dtype=np.float64)
             y_trues_per_image = np.array(y_trues_per_image, dtype=np.float64)
+            scores_per_image = np.array(scores_per_image, dtype=np.float64)
 
             print("Predicted boxes shape:", np.array(y_preds_per_image).shape)
             print("True boxes shape:", np.array(y_trues_per_image).shape)
             print(f"y_preds_per_image: {y_preds_per_image}, dtype: {y_preds_per_image.dtype}")
             print(f"y_trues_per_image: {y_trues_per_image}, dtype: {y_trues_per_image.dtype}")
+            print(f"scores_per_image: {scores_per_image}, dtype: {scores_per_image.dtype}")
 
             y_preds_i, y_trues_i, indices_i = hungarian_assignment(
             np.array(y_preds_per_image) , np.array(y_trues_per_image).astype(float), min_iou=min_iou
             )
 
-            matched_scores = scores_per_image[indices_i]
-
-            return y_preds_i, y_trues_i, indices_i, matched_scores
+            return y_preds_i, y_trues_i, indices_i, scores_per_image
 
     def load_results(self):
         """
@@ -207,12 +209,12 @@ class YOLOAPIWrappper:
                     results_dict["y_trues"],
                     results_dict["images"],
                     results_dict["labels"],
-                    results_dict["matched_scores"],
+                    results_dict["scores"] ,
                 )
         else:
             raise FileNotFoundError(f"No results file found at {self.file_path}.")
 
-    def save_results(self, y_preds, y_trues, images, labels, matched_scores):
+    def save_results(self, y_preds, y_trues, images, labels, scores):
         """
         Save results to a file.
         Args:
@@ -224,7 +226,7 @@ class YOLOAPIWrappper:
         """
         with open(self.file_path, "wb") as file:
             pickle.dump(
-                {"y_preds": y_preds, "y_trues": y_trues, "images": images, "labels": labels, "matched_score": matched_scores}, file
+                {"y_preds": y_preds, "y_trues": y_trues, "images": images, "labels": labels, "scores": scores}, file
             )
 
     def query(self, image_paths, y_trues, labels, min_iou=0.5, n_instances=None):
@@ -270,6 +272,7 @@ class YOLOAPIWrappper:
         scores = np.concatenate(scores, axis=0)
         
         self.save_results(y_preds, matched_trues, images, classes, scores)
+
         return y_preds, matched_trues, images, classes, scores
     
     
