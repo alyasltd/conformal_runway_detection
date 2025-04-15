@@ -1,5 +1,5 @@
 # ✈️ Conformal Runway Detection : an application to Vision Based Landing
-### **Alya ZOUZOU**, **Mélanie DUCOFFE**, XXXX
+### **Mélanie DUCOFFE**, **Alya ZOUZOU**, XXXX
 📄 *Read the full paper here* [*link to be inserted*]  
 
 ## Use Case Presentation
