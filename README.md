@@ -20,7 +20,7 @@ We leverage pretrained YOLOv5 and YOLOv6 object detection models to provide stat
 > ⚠️ `base/` directory must be downloaded separately (containing Test, Test Synth & Test Real directories).
 
 
-## 🔍 Models Used
+## Models Used
 
 | Model    | Pretrained | Epochs | Batch | Img Size | FLOPs         |
 |----------|------------|--------|-------|----------|----------------|
