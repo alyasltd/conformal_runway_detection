@@ -1,28 +1,11 @@
 # ✈️ Conformal Runway Detection : an application to Vision Based Landing
 ### **Alya ZOUZOU**, **Mélanie DUCOFFE**, XXXX
-📄 Read the paper here. 
+📄 *Read the full paper here* [*link to be inserted*]  
 
 ## Use Case Presentation
 This work explores the application of conformal prediction using the Puncc library to quantify the uncertainty of bounding boxes for runway detection in video footage captured during the landing phase of aircraft.
 
 We leverage pretrained YOLOv5 and YOLOv6 object detection models to provide statistical guarantees on the coverage of predicted bounding boxes. This approach supports the development of more robust and reliable vision-based landing systems, especially in critical aviation scenarios.
-
-Description of use case, precise that the test base have to be downloaded
-Image
-Sure! Here's a **structured and professional-style README** draft for your project **"Conformal Runway Detection: an application to Vision-Based Landing"** based on your detailed notes. This version is concise but informative, research-oriented, and clear.
-
----
-
-# ✈️ Conformal Runway Detection: an application to Vision-Based Landing
-
-**Alya ZOUZOU**, **Mélanie DUCOFFE**, XXXX  
-📄 *Read the full paper here* [*link to be inserted*]  
-
----
-
-## Use Case Overview
-
-This work explores the use of **conformal prediction** to quantify **uncertainty** in **bounding box detection** for **vision-based aircraft landing systems**. Leveraging **YOLOv5** and **YOLOv6** models, we aim to provide **statistical guarantees** on the **coverage** of predicted bounding boxes for runway detection.
 
 ###  LARD (Landing Approach Runway Detection – Dataset for Vision Based Landing)
 
