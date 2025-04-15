@@ -9,7 +9,7 @@ We leverage pretrained YOLOv5 and YOLOv6 object detection models to provide stat
 
 ###  LARD (Landing Approach Runway Detection – Dataset for Vision Based Landing)
 
-| Set          | Type         | # Images |
+| Set          | Type         |  Images |
 |--------------|--------------|----------|
 | Train        | Synthetic    | 11,546   |
 | Validation   | Synthetic    | 2,886    |
