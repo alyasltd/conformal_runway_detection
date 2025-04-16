@@ -107,6 +107,9 @@ class Dense_slant_dist_pred:
         torch.save(self.model.state_dict(), "cp_surrogate.pt")
 
     def evaluate_model(self):
+        self.model = MLP().to(device)
+        self.model.load_state_dict(torch.load("cp_surrogate.pt"))  # Charger les poids sauvegardés
+
         test_dataset = CoordinateDataset(self.X_test, self.y_test)
         test_loader = DataLoader(test_dataset, batch_size=32, shuffle=False)
 
@@ -165,5 +168,5 @@ mlp_model.load_data()
 print("Training model...")
 #mlp_model.train_model(epochs=50, batch_size=32)
 print("Evaluating model...")
-#mlp_model.evaluate_model()
+mlp_model.evaluate_model()
 mlp_model.plot()
