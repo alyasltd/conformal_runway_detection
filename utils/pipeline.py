@@ -7,7 +7,7 @@ from PIL import Image
 from deel.puncc.api.prediction import IdPredictor
 from deel.puncc.object_detection import SplitBoxWise
 from sklearn.model_selection import train_test_split
-from deel.puncc.plotting import draw_bounding_box
+from deel.puncc.plotting import draw_bounding_box, draw_bounding_box_zoom
 from deel.puncc.metrics import object_detection_mean_coverage, object_detection_mean_area
 from utils.helpers import iou, ioa
  
@@ -135,12 +135,13 @@ class CPPipeline:
     def pipeline(self, X_train, y_train, labels_train):
         api_model = IdPredictor()
         # we call the query method to get the predictions and the matched ground truth boxes which are our calibration data
-        y_preds, y_trues_matched, images, classes = self.yolo_wrapper.query(X_train, y_train, labels_train)
+        y_preds, y_trues_matched, images, classes, scores = self.yolo_wrapper.query(X_train, y_train, labels_train)
 
         print("Predictions:", y_preds)
         print("Matched Ground Truths:", y_trues_matched)
         print("Images:", images)
         print("Classes:", classes)
+        print("Scores:", scores)
 
         # we instantiate the conformal predictor
         conformal_predictor = SplitBoxWise(api_model, method=self.method, train=False)
@@ -153,12 +154,13 @@ class CPPipeline:
         # Predict only if not provided (for standalone use)
         if y_new_api is None:
             y_new_api = self.yolo_wrapper.predict_from_image(image_path)
+            print(f"Predictions: {y_new_api}")
 
         # Coverage target
         alpha = 0.3
 
         # Inference + Uncertainty Quantification
-        y_pred_new, box_inner, box_outer = conformal_predictor.predict(y_new_api, alpha=alpha)
+        y_pred_new, box_inner, box_outer = conformal_predictor.predict(y_new_api[0], alpha=alpha)
 
         # Convert data for visualization
         classes = [str(class_) for class_ in classes]
@@ -186,7 +188,7 @@ class CPPipeline:
                 image=image,
                 box=box_outer_t[i],
                 legend="Conformalized Outer Box",
-                color="orange",
+                color="green",
             )
             
             # image_with_bbox = draw_bounding_box(
@@ -198,11 +200,43 @@ class CPPipeline:
 
         _ = draw_bounding_box(image=image, show=True)
 
+        # Draw bounding boxes
+        for i in range(len(y_pred_new)):
+            image_with_bbox = draw_bounding_box_zoom(
+                image=image,
+                box=bboxes_t[i],
+                label=classes[i],
+                legend="Truth",
+                color="red",
+            )
+            image_with_bbox = draw_bounding_box_zoom(
+                image=image,
+                box=y_pred_new_t[i],
+                legend="Predictions",
+                color="blue",
+            )
+            image_with_bbox = draw_bounding_box_zoom(
+                image=image,
+                box=box_outer_t[i],
+                legend="Conformalized Outer Box",
+                color="green",
+            )
+            
+            # image_with_bbox = draw_bounding_box(
+            #     image=image_with_bbox,
+            #     box=box_inner[i],
+            #     legend="Conformalized Inner Box",
+            #     color="brown",
+            # )
+
+        _ = draw_bounding_box_zoom(image=image, show=True, do_crop=True)
+
         # Compute and print metrics
         coverage = object_detection_mean_coverage(box_outer, bboxes)
         average_area = object_detection_mean_area(box_outer)
         print(f"Marginal coverage: {np.round(coverage, 2)}")
         print(f"Average area: {np.round(average_area, 2)}")
+        print("Confidence score :" , y_new_api[1])
 
 
     def infer_all_images(self, conformal_predictor, X_val, y_val, labels_val, visualize=False):
@@ -217,7 +251,7 @@ class CPPipeline:
             Tuple[List[np.ndarray], List[np.ndarray], List[np.ndarray], List[np.ndarray]]: Predicted bounding boxes, ground truth boxes, images, and classes.
         """
         no_predictions = 0
-        y_pred_val, y_true_val, images_val, classes_val, box_inner_val, box_outer_val = [], [], [], [], [], []
+        y_pred_val, y_true_val, images_val, classes_val, score_val, box_inner_val, box_outer_val = [], [], [], [], [], [], []
 
         for i in range(len(X_val)):
             image_path, y_true, classes = X_val[i], y_val[i], labels_val[i]
@@ -225,13 +259,13 @@ class CPPipeline:
 
             image = Image.open(image_path)
 
-            if y_new_api.shape[0] == 0:  
+            if y_new_api[0].shape[0] == 0:  
                 #print(f"No detections in image {image_path}")
                 no_predictions += 1
                 continue  
 
             alpha = 0.3
-            y_pred_new, box_inner, box_outer = conformal_predictor.predict(y_new_api, alpha=alpha)
+            y_pred_new, box_inner, box_outer = conformal_predictor.predict(y_new_api[0], alpha=alpha)
 
             
             # Append results
@@ -239,6 +273,7 @@ class CPPipeline:
             y_true_val.append(y_true) # ground truth
             images_val.append(image) # image validation paths
             classes_val.append(classes) #  list classes
+            score_val.append(y_new_api[1]) # confidence score
             box_inner_val.append(box_inner) # conformalized inner box
             box_outer_val.append(box_outer) # conformalized outer box
             # Visualize the first 5 images for debugging
@@ -249,7 +284,7 @@ class CPPipeline:
         print(f"Number of images without predictions: {no_predictions}")
         print(f"Number of images with predictions: {len(X_val) - no_predictions}")
 
-        return y_pred_val, y_true_val, images_val, classes_val, box_inner_val, box_outer_val # pred_yolo, gt, image, classes, box_inner, box_outer
+        return y_pred_val, y_true_val, images_val, classes_val,score_val, box_inner_val, box_outer_val # pred_yolo, gt, image, classes, box_inner, box_outer
 
 
     def average_cover_and_area(self, y_pred_val, y_true_val, box_outer_val):
