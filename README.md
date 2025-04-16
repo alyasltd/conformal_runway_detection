@@ -7,7 +7,7 @@ This work explores the application of conformal prediction using the Puncc libra
 
 We leverage pretrained YOLOv5 and YOLOv6 object detection models to provide statistical guarantees on the coverage of predicted bounding boxes. This approach supports the development of more robust and reliable vision-based landing systems, especially in critical aviation scenarios.
 
-![Alt text](./plots/v5_a/cropped.png)
+![Alt text](./plots/v5_m/cropped.png)
 ###  LARD (Landing Approach Runway Detection – Dataset for Vision Based Landing)
 
 | Set          | Type         |  Images |
