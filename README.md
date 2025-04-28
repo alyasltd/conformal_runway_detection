@@ -65,8 +65,6 @@ copy_paste: 0.0
 |------------|-----------|---------------|---|----------|-------------|
 | YOLOv5     | Global    | Multiplicative| 0.3 | 0.759 | 71,655.05   |
 | YOLOv6     | Global    | Multiplicative| 0.3 | 0.739 | 67,361.18   |
-| YOLOv5     | Real      | Additive      | 0.3 | 0.500 | 64,453.75   |
-| YOLOv6     | Real      | Additive      | 0.3 | 0.375 | 59,190.32   |
 | ...        | ...       | ...           | ... | ...    | ...         |
 
 📌 *Full table in `exp/` directory.*
