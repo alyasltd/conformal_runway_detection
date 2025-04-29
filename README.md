@@ -73,10 +73,6 @@ copy_paste: 0.0
 | YOLOv5     | Synth     | Additive | 0.3 | 0.767 |  79950.7          |
 | YOLOv6     | Synth     | Additive | 0.3 | 0.734 | 76,892.42         |
 
-| ...        | ...       | ...           | ... | ...    | ...         |
-
-📌 *Full table in `exp/` directory.*
-
 
 ##  Future Work & Open Questions
 XXXXX
@@ -95,10 +91,10 @@ XXXXX
 └── 📄 README.md
 ```
 
-## To hdhk
+##  To encourage reproducibility
 
 ```bash
-git clone https://github.com/your-org/conformal_runway_detection
+git clone https://github.com/alyasltd/conformal_runway_detection
 cd conformal_runway_detection
 pip install -r requirements.txt
 ```
