@@ -1,6 +1,6 @@
-# ✈️ Conformal Runway Detection : an application to Vision Based Landing
+# ✈️ Robust Vision-Based Runway Detection through Conformal Prediction and Conformal mAP
 ###  **Alya ZOUZOU**, **Mélanie DUCOFFE**, XXXX
-📄 *Read the full paper here* [*link to be inserted*]  
+📄 *Read the full paper here* [*link to be inserted*]  **COPA 2025**
 
 ## Use Case Presentation
 This work explores the application of conformal prediction using the Puncc library to quantify the uncertainty of bounding boxes for runway detection in video footage captured during the landing phase of aircraft.
