@@ -93,9 +93,6 @@ copy_paste: 0.0
 | c-YOLOv6-m    | 96.71 | 52.71 | 81.93           |
 
 
-##  Future Work & Open Questions
-XXXXX
-
 ## 📂 Project Structure
 ```
 📂 conformal_runway_detection/
