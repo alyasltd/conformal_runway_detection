@@ -9,6 +9,14 @@ This work explores the application of conformal prediction using the Puncc libra
 We leverage pretrained YOLOv5 and YOLOv6 object detection models to provide statistical guarantees on the coverage of predicted bounding boxes. This approach supports the development of more robust and reliable vision-based landing systems, especially in critical aviation scenarios.
 
 ![Alt text](./plots/v5_m/cropped.png)
+
+### Contributions
+
+- **Conformal Prediction for Runway Detection**: We apply conformal prediction with different margin methods (additive/multiplicative penalties) on YOLOv5 and YOLOv6 for runway detection in aerial images.
+- **Conformal Mean Average Precision (C-mAP)**: A new metric to evaluate bounding box predictions based on their accuracy and coverage of ground truth boxes, aligning conformal prediction with object detection benchmarks.
+- **Open-source Resources**: We release our code, trained models, and experimental protocols to promote reproducibility and further research.
+
+
 Rajouter légende 
 ###  LARD (Landing Approach Runway Detection – Dataset for Vision Based Landing)
 
@@ -72,6 +80,17 @@ copy_paste: 0.0
 | YOLOv6     | Synth     | Multiplicative | 0.3 | 0.743 | 87,277.80   |
 | YOLOv5     | Synth     | Additive | 0.3 | 0.767 |  79950.7          |
 | YOLOv6     | Synth     | Additive | 0.3 | 0.734 | 76,892.42         |
+
+#### Conformal-mAP Results
+
+| Model         | mAP   | C-mAP | C-mAP@50@80:100 |
+|---------------|-------|-------|-----------------|
+| YOLOv5        | 96.88 | 0.77  | 46.92           |
+| c-YOLOv5-a    | 92.67 | 56.86 | 80.73           |
+| c-YOLOv5-m    | 96.17 | 55.84 | 82.18           |
+| YOLOv6        | 98.13 | 1.31  | 51.94           |
+| c-YOLOv6-a    | 95.09 | 55.75 | 81.86           |
+| c-YOLOv6-m    | 96.71 | 52.71 | 81.93           |
 
 
 ##  Future Work & Open Questions
