@@ -1,6 +1,5 @@
 # ✈️ Robust Vision-Based Runway Detection through Conformal Prediction and Conformal mAP 
 
-###  **Alya ZOUZOU**, **Mélanie DUCOFFE**, XXXX
 📄 *Read the full paper here* [*link to be inserted*] 
 
 ## Use Case Presentation
