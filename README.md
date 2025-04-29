@@ -64,8 +64,15 @@ copy_paste: 0.0
 
 | Model      | Test Type | Method        | α | Coverage | Area        |
 |------------|-----------|---------------|---|----------|-------------|
-| YOLOv5     | Global    | Multiplicative| 0.3 | 0.759 | 71,655.05   |
-| YOLOv6     | Global    | Multiplicative| 0.3 | 0.739 | 67,361.18   |
+| YOLOv5     | Global    | Multiplicative| 0.3 | 0.759 | 71,655.05    |
+| YOLOv6     | Global    | Multiplicative| 0.3 | 0.739 | 67,361.18    |
+| YOLOv5     | Global    | Additive | 0.3 | 0.770 | 62,560.3125       |
+| YOLOv6     | Global    | Additive | 0.3 | 0.757 | 60,153.734        |
+| YOLOv5     | Synth     | Multiplicative | 0.3 | 0.774 | 92,721.63   |
+| YOLOv6     | Synth     | Multiplicative | 0.3 | 0.743 | 87,277.80   |
+| YOLOv5     | Synth     | Additive | 0.3 | 0.767 |  79950.7          |
+| YOLOv6     | Synth     | Additive | 0.3 | 0.734 | 76,892.42         |
+
 | ...        | ...       | ...           | ... | ...    | ...         |
 
 📌 *Full table in `exp/` directory.*
