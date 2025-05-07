@@ -10,9 +10,9 @@ We leverage pretrained YOLOv5 and YOLOv6 object detection models to provide stat
 ![Alt text](./plots/v5_m/cropped.png)
 
 Legend:
-- <span style="color:red">**Red**</span>: Ground Truth
-- <span style="color:blue">**Blue**</span>: YOLO Prediction
-- <span style="color:green">**Green**</span>: Conformalized Outer Box
+- 🟥 **Red**: Ground Truth
+- 🟦 **Blue**: YOLO Prediction
+- 🟩 **Green**: Conformalized Outer Box
   
 ### Contributions
 
