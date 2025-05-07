@@ -9,6 +9,11 @@ We leverage pretrained YOLOv5 and YOLOv6 object detection models to provide stat
 
 ![Alt text](./plots/v5_m/cropped.png)
 
+Legend:
+- <span style="color:red">**Red**</span>: Ground Truth
+- <span style="color:blue">**Blue**</span>: YOLO Prediction
+- <span style="color:green">**Green**</span>: Conformalized Outer Box
+  
 ### Contributions
 
 - **Conformal Prediction for Runway Detection**: We apply conformal prediction with different margin methods (additive/multiplicative penalties) on YOLOv5 and YOLOv6 for runway detection in aerial images.
@@ -16,7 +21,6 @@ We leverage pretrained YOLOv5 and YOLOv6 object detection models to provide stat
 - **Open-source Resources**: We release our code, trained models, and experimental protocols to promote reproducibility and further research.
 
 
-Rajouter légende 
 ###  LARD (Landing Approach Runway Detection – Dataset for Vision Based Landing)
 
 | Set          | Type         |  Images |
