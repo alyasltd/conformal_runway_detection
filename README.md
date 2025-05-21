@@ -79,10 +79,6 @@ copy_paste: 0.0
 | YOLOv6     | Global    | Multiplicative| 0.3 | 0.739 |
 | YOLOv5     | Global    | Additive | 0.3 | 0.770 |
 | YOLOv6     | Global    | Additive | 0.3 | 0.757 |
-| YOLOv5     | Synth     | Multiplicative | 0.3 | 0.774 |
-| YOLOv6     | Synth     | Multiplicative | 0.3 | 0.743 |
-| YOLOv5     | Synth     | Additive | 0.3 | 0.767 |
-| YOLOv6     | Synth     | Additive | 0.3 | 0.734 |
 
 #### Conformal-mAP Results
 
